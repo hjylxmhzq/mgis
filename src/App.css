@@ -1,0 +1,85 @@
+@import '~antd/dist/antd.css';
+
+.App {
+  text-align: center;
+  height: 100%;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.header_text {
+  color: white;
+  text-align: left;
+  font-size: 20px;
+}
+
+.sider::-webkit-scrollbar
+{
+    width: 5px;
+    background-color: #F5F5F5;
+}
+ 
+/*定义滚动条轨道 内阴影+圆角*/
+.sider::-webkit-scrollbar-track
+{
+    border-radius: 10px;
+    background-color: #F5F5F5;
+}
+ 
+/*定义滑块 内阴影+圆角*/
+.sider::-webkit-scrollbar-thumb
+{
+    border-radius: 10px;
+    background-color: #999;
+}
+
+.main_box {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  padding-top: 50px;
+}
+
+.left {
+  position: absolute;
+  width: 300px;
+  top: 50px;
+  bottom: 0;
+  border-right: 1px solid #eee;
+}
+
+.main {
+  padding-left: 300px;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+}

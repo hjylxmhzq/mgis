@@ -1,4 +1,4 @@
-### ESRI 历史地理
+### MGIS
 #### Step-by-Step tutorial
 
 ##### 首先将本仓库克隆到本地(download or clone)

@@ -11,7 +11,7 @@ export default class Header extends Component {
     }
     render() {
         return (
-            <div className="header">历史地理数据</div>
+            <div className="header">高尔夫信息数据综合</div>
         )
     }
 }

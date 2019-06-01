@@ -1,5 +1,5 @@
 {
-  "name": "gishistorialdataplatform",
+  "name": "glofdata",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -129,7 +129,6 @@
     ]
   },
   "devDependencies": {
-    "@arcgis/webpack-plugin": "^4.11.0",
     "antd": "^3.18.2",
     "echarts": "^4.2.1",
     "esri-loader": "^2.9.2"

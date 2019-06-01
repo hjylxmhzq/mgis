@@ -59,10 +59,8 @@ export default class ArcGISMap extends Component {
       const graphicsLayer2 = new GraphicsLayer();
 
       const featureLayer = new FeatureLayer({
-        portalItem: {
-          id: "83c37666a059480bb8a7cb73f449ff52"
-        },
-        outFields: ["*"]
+        // URL to the service
+        url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer/0"
       });
 
       // Create map
@@ -75,11 +73,11 @@ export default class ArcGISMap extends Component {
       const view = new MapView({
         container: "mapDiv",
         map: map,
-        zoom: 12,
-        center: [-122.083, 37.3069],
+        zoom: 6,
+        center: [113.083, 27.3069],
         constraints: {
           maxScale: 0,
-          minScale: 300000
+          minScale: 300000000
         }
       });
 

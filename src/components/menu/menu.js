@@ -16,26 +16,8 @@ export default class LeftMenu extends Component {
 
     render() {
         const dynasty = {
-            '夏朝': {},
-            '商朝': {},
-            '西周': {},
-            '春秋': {},
-            '战国': {},
-            '秦朝': {},
-            '汉朝': {},
-            '三国': {},
-            '晋朝': {},
-            '五胡十六国': {},
-            '南北朝': {},
-            '隋朝': {},
-            '唐朝': {},
-            '五代十国': {},
-            '宋朝': {},
-            '元朝': {},
-            '明朝': {},
-            '清朝': {},
-            '中华民国': {},
-            '中华人民共和国': {}
+            '圆形': {},
+            '多边形': {},
         }
         const dynastyName = [];
         for (let name in dynasty) {
@@ -53,11 +35,11 @@ export default class LeftMenu extends Component {
                     title={
                         <span>
                             <Icon type="mail" />
-                            <span>朝代选择</span>
+                            <span>功能选择</span>
                         </span>
                     }
                 >
-                    <MenuItemGroup key="g1" title="朝代">
+                    <MenuItemGroup key="g1" title="范围查询">
                         {dynastyName.map((name, index) => {
                             return <Menu.Item style={{
                                 marginBottom: '0px',

@@ -57,7 +57,7 @@ export default class ArcGISMap extends Component {
         // URL to the service
         url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer/0"
       });
-      featureLayer.queryFeatures().then(function(results){
+      featureLayer.queryFeatures().then(function (results) {
         // prints an array of all the features in the service to the console
         console.log(results.features);
       });
@@ -95,15 +95,28 @@ export default class ArcGISMap extends Component {
           });
           const sketch = new Sketch({
             view,
-            layer: graphicsLayer
+            layer: graphicsLayer2
           });
 
+          sketch.on("create", function (event) {
+            // check if the create event's state has changed to complete indicating
+            // the graphic create operation is completed.
+            if (event.state === "complete") {
+              let query = featureLayer.createQuery();
+              query.geometry = event.graphic.geometry;
+              query.spatialRelationship = "intersects";
+              featureLayer.queryFeatures(query).then(function (results) {
+                // prints an array of all the features in the service to the console
+                console.log(results.features);
+              });
+            }
+          });
           const search = new Search({
             view: view,
             sources: [
               {
                 layer: featureLayer,
-                searchFields: ["adderss",'area','name'],
+                searchFields: ["adderss", 'area', 'name'],
                 displayField: "adderss",
                 exactMatch: false,
                 outFields: ["*"],
@@ -138,7 +151,7 @@ export default class ArcGISMap extends Component {
           view.ui.add(search, "top-right");
         });
       }
-    
+
       let chart;
 
       function updateChart(newData) {
@@ -174,7 +187,7 @@ export default class ArcGISMap extends Component {
     }
     return (
       <div style={style}>
-        <canvas ref={this.chartCanvas} style={{position: 'absolute', bottom: '10px', right: '10px'}}></canvas>
+        <canvas ref={this.chartCanvas} style={{ position: 'absolute', bottom: '10px', right: '10px' }}></canvas>
         <div id="mapDiv" style={style}></div>
       </div>
     )

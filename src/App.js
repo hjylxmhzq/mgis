@@ -22,7 +22,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Layout style={{ height: '100%' }}>
-          <Header><div className="header_text">历史地理数据</div></Header>
+          <Header><div className="header_text">高尔夫信息综合</div></Header>
           <Layout>
             <Sider
               collapsible

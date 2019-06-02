@@ -1,5 +1,7 @@
-import React, { Component } from 'react'
-import esriLoader from 'esri-loader'
+import React, { Component } from 'react';
+import esriLoader from 'esri-loader';
+import { Drawer } from 'antd';
+
 
 export default class ArcGISMap extends Component {
   constructor(props) {
@@ -7,13 +9,39 @@ export default class ArcGISMap extends Component {
     //地图请求url
     this.tileMapUrl = "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer";
     this.chartCanvas = React.createRef();
+    this.hotLayer = null;
+    this.map = null;
+    this.view = null;
+    this.hotLayer = null;
+    this.state = { 
+      drawerVisible: props.drawerVisible,
+      drawerContent: []
+    };
   }
+
+  showDrawer = () => {
+    this.setState({
+      drawerVisible: true,
+    });
+  };
+
+  componentDidUpdate() {
+    console.log(this.props);
+    if (this.props.hotmap) {
+      this.map.add(this.hotLayer);
+    } else {
+      this.map.remove(this.hotLayer);
+    }
+
+  }
+
   componentDidMount() {
     this.initMap()
   }
+
   initMap() {
     const mapURL = {
-      url: "https://js.arcgis.com/4.11/dojo/dojo.js"
+      url: "https://172.20.32.70:8889/arcgis_js_api/library/4.11/dojo/dojo.js"
     }
     esriLoader.loadModules([
       "esri/widgets/Sketch/SketchViewModel",
@@ -25,11 +53,12 @@ export default class ArcGISMap extends Component {
       "esri/layers/FeatureLayer",
       "esri/layers/GraphicsLayer",
       "esri/geometry/geometryEngine",
-      "esri/widgets/Expand",
+      "esri/widgets/Compass",
       "esri/widgets/Legend",
       "esri/widgets/Search",
       "esri/core/watchUtils",
-      "esri/widgets/Sketch"
+      "esri/widgets/Sketch",
+      "esri/layers/MapImageLayer"
     ], mapURL).then(([
       SketchViewModel,
       Polyline,
@@ -40,11 +69,12 @@ export default class ArcGISMap extends Component {
       FeatureLayer,
       GraphicsLayer,
       geometryEngine,
-      Expand,
+      Compass,
       Legend,
       Search,
       watchUtils,
-      Sketch]) => {
+      Sketch,
+      MapImageLayer]) => {
       let featureLayerView, pausableWatchHandle, chartExpand;
 
       const unit = "kilometers";
@@ -53,6 +83,9 @@ export default class ArcGISMap extends Component {
       const graphicsLayer = new GraphicsLayer();
       const graphicsLayer2 = new GraphicsLayer();
 
+      this.hotLayer = new MapImageLayer({
+        url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer"
+      });
       const featureLayer = new FeatureLayer({
         // URL to the service
         url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer/0"
@@ -62,13 +95,13 @@ export default class ArcGISMap extends Component {
         console.log(results.features);
       });
       // Create map
-      const map = new Map({
+      this.map = new Map({
         basemap: "dark-gray",
         layers: [featureLayer, graphicsLayer2, graphicsLayer]
       });
-
+      let map = this.map;
       // Create view
-      const view = new MapView({
+      this.view = new MapView({
         container: "mapDiv",
         map: map,
         zoom: 6,
@@ -79,6 +112,8 @@ export default class ArcGISMap extends Component {
         }
       });
 
+      let view = this.view;
+
       // Update UI
       setUpAppUI();
 
@@ -86,12 +121,8 @@ export default class ArcGISMap extends Component {
         // When layer is loaded, create a watcher to trigger drawing of the buffer polygon
         view.when(function () {
           // Display the chart in an Expand widget
-          chartExpand = new Expand({
-            expandIconClass: "esri-icon-chart",
-            expandTooltip: "关键词",
-            expanded: false,
-            view: view,
-            content: document.getElementById("chartPanel")
+          var compass = new Compass({
+            view: view
           });
           const sketch = new Sketch({
             view,
@@ -137,17 +168,9 @@ export default class ArcGISMap extends Component {
             ]
           });
 
-          // Display the Legend in an Expand widget
-          const legendExpand = new Expand({
-            expandTooltip: "Show Legend",
-            expanded: false,
-            view: view,
-            content: legend
-          });
-
           // Add our components to the UI
           view.ui.add(sketch, "bottom-right");
-          view.ui.add(chartExpand, "bottom-left");
+          view.ui.add(compass, "bottom-left");
           view.ui.add(search, "top-right");
         });
       }
@@ -185,10 +208,24 @@ export default class ArcGISMap extends Component {
       height: '100%',
       position: 'relative'
     }
+    
     return (
       <div style={style}>
         <canvas ref={this.chartCanvas} style={{ position: 'absolute', bottom: '10px', right: '10px' }}></canvas>
         <div id="mapDiv" style={style}></div>
+        <Drawer
+          title="统计数据"
+          placement="right"
+          closable={true}
+          onClose={this.props.onCloseDrawer}
+          visible={this.props.drawerVisible}
+          mask={false}
+          width={500}
+        >
+          {this.state.drawerContent.map(item=>{
+            return <p>{item}</p>
+          })}
+        </Drawer>
       </div>
     )
   }

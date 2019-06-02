@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Menu, Icon } from 'antd';
+import { Menu, Icon, Button } from 'antd';
 import './menu.css';
 
 const SubMenu = Menu.SubMenu;
@@ -8,10 +8,6 @@ const MenuItemGroup = Menu.ItemGroup;
 export default class LeftMenu extends Component {
     constructor(props) {
         super(props);
-    }
-
-    handleClick(e) {
-        console.log(e);
     }
 
     render() {
@@ -39,7 +35,7 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <MenuItemGroup key="g1" title="范围查询">
+                    <SubMenu key="g1" title="范围查询">
                         {dynastyName.map((name, index) => {
                             return <Menu.Item style={{
                                 marginBottom: '0px',
@@ -49,19 +45,27 @@ export default class LeftMenu extends Component {
                             }}
                                 key={index.toString()}>{name}</Menu.Item>
                         })}
-                    </MenuItemGroup>
+                    </SubMenu>
+                    <SubMenu key="g2" title="路径计算">
+                        <Menu.Item>
+                            起点
+                        </Menu.Item>
+                        <Menu.Item>
+                            终点
+                        </Menu.Item>
+                    </SubMenu>
                 </SubMenu>
                 <SubMenu
                     key="sub2"
                     title={
                         <span>
                             <Icon type="appstore" />
-                            <span>Navigation Two</span>
+                            <span>数据统计</span>
                         </span>
                     }
                 >
-                    <Menu.Item key="5">Option 5</Menu.Item>
-                    <Menu.Item key="6">Option 6</Menu.Item>
+                    <Menu.Item key="hotmap" onClick={this.props.handleMenuClick}>热力图</Menu.Item>
+                    <Menu.Item key="static" onClick={this.props.handleMenuClick}>统计表格</Menu.Item>
                     <SubMenu key="sub3" title="Submenu">
                         <Menu.Item key="7">Option 7</Menu.Item>
                         <Menu.Item key="8">Option 8</Menu.Item>
@@ -72,7 +76,7 @@ export default class LeftMenu extends Component {
                     title={
                         <span>
                             <Icon type="setting" />
-                            <span>Navigation Three</span>
+                            <span>底图</span>
                         </span>
                     }
                 >
@@ -80,6 +84,20 @@ export default class LeftMenu extends Component {
                     <Menu.Item key="10">Option 10</Menu.Item>
                     <Menu.Item key="11">Option 11</Menu.Item>
                     <Menu.Item key="12">Option 12</Menu.Item>
+                </SubMenu>                
+                <SubMenu
+                    key="sub5"
+                    title={
+                        <span>
+                            <Icon type="setting" />
+                            <span>帮助</span>
+                        </span>
+                    }
+                >
+                    <Menu.Item key="13">Option 9</Menu.Item>
+                    <Menu.Item key="14">Option 10</Menu.Item>
+                    <Menu.Item key="15">Option 11</Menu.Item>
+                    <Menu.Item key="16">Option 12</Menu.Item>
                 </SubMenu>
             </Menu>
         )

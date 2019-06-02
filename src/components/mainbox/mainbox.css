@@ -1,0 +1,6 @@
+.selected_item {
+    width: 100%;
+    padding: 3px 20px;
+    box-shadow: 0 0 5px 0 #ddd;
+    cursor: pointer;
+}

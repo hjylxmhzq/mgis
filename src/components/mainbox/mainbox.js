@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import Charts from '../charts';
+import Details from '../details';
 import esriLoader from 'esri-loader';
 import { Drawer } from 'antd';
-
+import './mainbox.css';
 
 export default class ArcGISMap extends Component {
   constructor(props) {
@@ -13,10 +15,28 @@ export default class ArcGISMap extends Component {
     this.map = null;
     this.view = null;
     this.hotLayer = null;
+    this.updateChart = this.updateChart.bind(this);
+    this.selectGrphics = [];
+    this.sketch = null;
     this.state = { 
       drawerVisible: props.drawerVisible,
-      drawerContent: []
+      drawerContent: [],
+      barData: [],
+      detailVisible: false
     };
+  }
+
+  updateChart(barData) {
+    this.setState({barData});
+  }
+
+  handleCloseModal() {
+    this.setState({detailVisible: false});
+  }
+
+  clickSelected(event) {
+    let content = <p>content</p>
+    this.setState({detailVisible: true, detailContent: content, detailTitle: event.target.innerText})
   }
 
   showDrawer = () => {
@@ -26,13 +46,25 @@ export default class ArcGISMap extends Component {
   };
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.hotmap) {
       this.map.add(this.hotLayer);
     } else {
       this.map.remove(this.hotLayer);
     }
+    if (this.props.reset) {
+      this.sketch.reset();
+      for (let i=0;i<this.selectGrphics.length;i++) {
+        this.graphicsLayer2.remove(this.selectGrphics[i]);
+      }
+      this.selectGrphics = [];
+    }
+  }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      drawerVisible: nextProps.drawerVisible
+    });
+    this.map.basemap = nextProps.basemap;
   }
 
   componentDidMount() {
@@ -40,8 +72,11 @@ export default class ArcGISMap extends Component {
   }
 
   initMap() {
+
+    let that = this;
+
     const mapURL = {
-      url: "https://172.20.32.70:8889/arcgis_js_api/library/4.11/dojo/dojo.js"
+      url: "http://www.tony-space.top:8000/arcgis_js_api/library/4.11/dojo/dojo.js"
     }
     esriLoader.loadModules([
       "esri/widgets/Sketch/SketchViewModel",
@@ -82,21 +117,18 @@ export default class ArcGISMap extends Component {
       // Create layers
       const graphicsLayer = new GraphicsLayer();
       const graphicsLayer2 = new GraphicsLayer();
-
+      this.graphicsLayer2 = graphicsLayer2;
       this.hotLayer = new MapImageLayer({
-        url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer"
+        url: "https://arcserver.tony-space.top:8001/arcgis/rest/services/golfmap/MapServer"
       });
       const featureLayer = new FeatureLayer({
         // URL to the service
-        url: "https://172.20.32.139:6443/arcgis/rest/services/golfmap/MapServer/0"
-      });
-      featureLayer.queryFeatures().then(function (results) {
-        // prints an array of all the features in the service to the console
-        console.log(results.features);
+        url: "https://arcserver.tony-space.top:8001/arcgis/rest/services/golfmap/MapServer/0"
       });
       // Create map
+      let basemap = this.props.basemap;
       this.map = new Map({
-        basemap: "dark-gray",
+        basemap,
         layers: [featureLayer, graphicsLayer2, graphicsLayer]
       });
       let map = this.map;
@@ -128,17 +160,49 @@ export default class ArcGISMap extends Component {
             view,
             layer: graphicsLayer2
           });
+          that.sketch = sketch;
 
-          sketch.on("create", function (event) {
+          sketch.on("create", (event) => {
             // check if the create event's state has changed to complete indicating
             // the graphic create operation is completed.
             if (event.state === "complete") {
               let query = featureLayer.createQuery();
+              that.selectGrphics.push(event.graphic);
               query.geometry = event.graphic.geometry;
               query.spatialRelationship = "intersects";
               featureLayer.queryFeatures(query).then(function (results) {
                 // prints an array of all the features in the service to the console
-                console.log(results.features);
+                let features = results.features,
+                    barData = [];
+                features.forEach((feature) => {
+                  barData.push([feature.attributes.name, feature.attributes['avg_score']]);
+                });
+                barData.sort((a,b)=>{
+                  return b[1] - a[1];
+                })
+                that.setState({drawerVisible: true})
+                that.updateChart(barData);
+              });
+            }
+          });
+          sketch.on("update", function(event){
+            // check if the graphics are done being moved, printout dx, dy parameters to the console.
+            const eventInfo = event.toolEventInfo;
+            if (eventInfo && eventInfo.type.includes("move")){
+              let query = featureLayer.createQuery();
+              query.geometry = eventInfo.mover.geometry;
+              query.spatialRelationship = "intersects";
+              featureLayer.queryFeatures(query).then(function (results) {
+                // prints an array of all the features in the service to the console
+                let features = results.features,
+                    barData = [];
+                features.forEach((feature) => {
+                  barData.push([feature.attributes.name, feature.attributes['avg_score']]);
+                });
+                barData.sort((a,b)=>{
+                  return b[1] - a[1];
+                })
+                that.updateChart(barData);
               });
             }
           });
@@ -169,17 +233,12 @@ export default class ArcGISMap extends Component {
           });
 
           // Add our components to the UI
-          view.ui.add(sketch, "bottom-right");
-          view.ui.add(compass, "bottom-left");
+          view.ui.add(sketch, "bottom-left");
+          view.ui.add(compass, "bottom-right");
           view.ui.add(search, "top-right");
         });
       }
 
-      let chart;
-
-      function updateChart(newData) {
-        //console.log(newData);
-      }
 
       // Label polyline with its length
       function labelLength(geom, length) {
@@ -208,24 +267,27 @@ export default class ArcGISMap extends Component {
       height: '100%',
       position: 'relative'
     }
-    
     return (
       <div style={style}>
         <canvas ref={this.chartCanvas} style={{ position: 'absolute', bottom: '10px', right: '10px' }}></canvas>
         <div id="mapDiv" style={style}></div>
         <Drawer
-          title="统计数据"
+          title="查询结果"
           placement="right"
           closable={true}
           onClose={this.props.onCloseDrawer}
-          visible={this.props.drawerVisible}
+          visible={this.state.drawerVisible}
           mask={false}
-          width={500}
+          width={300}
         >
-          {this.state.drawerContent.map(item=>{
-            return <p>{item}</p>
-          })}
+          <Charts barData={this.state.barData} />
+          {
+            this.state.barData.map((item) => {
+              return <p className="selected_item" key={item[0]} onClick={this.clickSelected.bind(this)}>{item[0]}</p>;
+            })
+          }
         </Drawer>
+        <Details closeModal={this.handleCloseModal.bind(this)} title={this.state.detailTitle} visible={this.state.detailVisible} content={this.state.detailContent} />
       </div>
     )
   }

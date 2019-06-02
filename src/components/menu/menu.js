@@ -11,19 +11,11 @@ export default class LeftMenu extends Component {
     }
 
     render() {
-        const dynasty = {
-            '圆形': {},
-            '多边形': {},
-        }
-        const dynastyName = [];
-        for (let name in dynasty) {
-            dynastyName.push(name);
-        }
         return (
             <Menu
                 onClick={this.handleClick}
                 defaultSelectedKeys={['1']}
-                defaultOpenKeys={['sub1']}
+                defaultOpenKeys={['sub1', 'sub2']}
                 mode="inline"
             >
                 <SubMenu
@@ -35,16 +27,16 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <SubMenu key="g1" title="范围查询">
-                        {dynastyName.map((name, index) => {
-                            return <Menu.Item style={{
-                                marginBottom: '0px',
-                                height: '26px',
-                                fontSize: '12px',
-                                lineHeight: '26px'
-                            }}
-                                key={index.toString()}>{name}</Menu.Item>
-                        })}
+                    <SubMenu key="g1" title="范围">
+                        <Menu.Item style={{
+                            marginBottom: '0px',
+                            height: '26px',
+                            fontSize: '12px',
+                            lineHeight: '26px'
+                        }}
+                            onClick={this.props.handleMenuClick}
+                            key="reset" >重置范围
+                        </Menu.Item>
                     </SubMenu>
                     <SubMenu key="g2" title="路径计算">
                         <Menu.Item>
@@ -64,12 +56,12 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <Menu.Item key="hotmap" onClick={this.props.handleMenuClick}>热力图</Menu.Item>
+                    <Menu.Item key="hotmap" onClick={this.props.handleMenuClick}>密度图</Menu.Item>
                     <Menu.Item key="static" onClick={this.props.handleMenuClick}>统计表格</Menu.Item>
-                    <SubMenu key="sub3" title="Submenu">
+                    {/* <SubMenu key="sub3" title="Submenu">
                         <Menu.Item key="7">Option 7</Menu.Item>
                         <Menu.Item key="8">Option 8</Menu.Item>
-                    </SubMenu>
+                    </SubMenu> */}
                 </SubMenu>
                 <SubMenu
                     key="sub4"
@@ -80,11 +72,11 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <Menu.Item key="9">Option 9</Menu.Item>
-                    <Menu.Item key="10">Option 10</Menu.Item>
-                    <Menu.Item key="11">Option 11</Menu.Item>
-                    <Menu.Item key="12">Option 12</Menu.Item>
-                </SubMenu>                
+                    <Menu.Item key="dark-gray" onClick={this.props.handleMenuClick}>dark-gray</Menu.Item>
+                    <Menu.Item key="topo" onClick={this.props.handleMenuClick}>topo</Menu.Item>
+                    <Menu.Item key="streets" onClick={this.props.handleMenuClick}>streets</Menu.Item>
+                    <Menu.Item key="hybrid" onClick={this.props.handleMenuClick}>hybrid</Menu.Item>
+                </SubMenu>
                 <SubMenu
                     key="sub5"
                     title={

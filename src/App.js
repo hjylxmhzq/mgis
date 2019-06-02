@@ -12,7 +12,9 @@ class App extends React.Component {
     this.state = {
       collapsed: false,
       hotmap: false,
-      drawerVisible: false
+      drawerVisible: false,
+      basemap: 'dark-gray',
+      reset: false
     };
   }
 
@@ -27,24 +29,45 @@ class App extends React.Component {
     });
   }
 
+  componentDidUpdate() {
+    if (this.state.reset) {
+      this.setState({reset: false});
+    }
+  }
+
   handleMenuClick(e) {
     let prevState = this.state;
     let state = {};
     switch (e.key) {
       case 'hotmap':
         state.hotmap = !this.state.hotmap;
-        let msg = state.hotmap ? '热力图已打开' : '热力图已关闭';
+        let msg = state.hotmap ? '密度图已打开' : '密度图已关闭';
         this.notice(msg);
         break;
       case 'static':
         state.drawerVisible = !this.state.drawerVisible;
+        break;
+      case 'topo':
+        state.basemap = 'topo';
+        break;
+      case 'dark-gray':
+        state.basemap = 'dark-gray';
+        break;
+      case 'streets':
+        state.basemap = 'streets';
+        break;
+      case 'hybrid':
+        state.basemap = 'hybrid';
+        break;
+      case 'reset':
+        state.reset = true;
         break;
     }
     this.setState(state);
   }
 
   onCloseDrawer() {
-    this.setState({drawerVisible: false});
+    this.setState({ drawerVisible: false });
   }
 
   onCollapse = collapsed => {
@@ -75,10 +98,12 @@ class App extends React.Component {
                   minHeight: 280,
                 }}
               >
-                <Mainbox 
-                hotmap={this.state.hotmap} 
-                drawerVisible={this.state.drawerVisible}
-                onCloseDrawer={this.onCloseDrawer.bind(this)}
+                <Mainbox
+                  reset={this.state.reset}
+                  basemap={this.state.basemap}
+                  hotmap={this.state.hotmap}
+                  drawerVisible={this.state.drawerVisible}
+                  onCloseDrawer={this.onCloseDrawer.bind(this)}
                 />
               </Content>
             </Layout>

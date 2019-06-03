@@ -35,6 +35,14 @@ export default class Details extends React.Component {
                     visible={this.state.visible}
                     onOk={this.handleOk}
                     onCancel={this.handleCancel}
+                    footer={[
+                        <Button key="back" onClick={this.handleCancel}>
+                          关闭
+                        </Button>,
+                        <Button key="submit" type="primary" onClick={this.handleOk}>
+                          去这里
+                        </Button>,
+                      ]}
                     width="90%"
                 >
                     {this.props.content}

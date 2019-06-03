@@ -1,3 +1,5 @@
+"use strict";
+
 import React, { Component } from 'react';
 import Charts from '../charts';
 import Details from '../details';
@@ -20,15 +22,20 @@ export default class ArcGISMap extends Component {
     this.selectGrphics = [];
     this.sketch = null;
     this.pointChoose = 'origin';
-    this.OD = [];
+    this.OD = new Array(2);
     this.Graphic = null;
+    this.featureLayer = null;
+    this.featureLayerView = null;
+    this.highlight = null;
     this.state = {
       drawerVisible: props.drawerVisible,
       drawerContent: [],
       barData: [],
       detailVisible: false,
       destination: { x: '', y: '' },
-      origin: { x: '', y: '' }
+      origin: { x: '', y: '' },
+      distance: '',
+      duration: ''
     };
     this.routeGraphic = null;
   }
@@ -38,7 +45,12 @@ export default class ArcGISMap extends Component {
       this.view.graphics.remove(this.routeGraphic);
       this.routeGraphic = null;
     };
-    
+    if (this.OD[0]) {
+      this.routeLayer.remove(this.OD[0]);
+    } 
+    if (this.OD[1]) {
+      this.routeLayer.remove(this.OD[1]);
+    }
   }
 
   notice(msg) {
@@ -52,17 +64,30 @@ export default class ArcGISMap extends Component {
     });
   }
 
+  selectFeature(featureLayer, objectId, callback) {
+    // query feature from the server
+    featureLayer
+      .queryFeatures({
+        objectIds: [objectId],
+        outFields: ["*"],
+        returnGeometry: true
+      })
+      .then(function (results) {
+        callback(results);
+      });
+  }
+
   updateChart(barData) {
     this.setState({ barData });
   }
 
   handleCloseModal() {
+
     this.setState({ detailVisible: false });
   }
 
   onCloseDrawer() {
     this.props.onCloseDrawer();
-    this.setState({ barData: [] });
   }
 
   clickSelected(event) {
@@ -89,6 +114,7 @@ export default class ArcGISMap extends Component {
     }
     if (this.props.reset) {
       this.sketch.reset();
+      this.notice('范围已重置');
       for (let i = 0; i < this.selectGrphics.length; i++) {
         this.graphicsLayer2.remove(this.selectGrphics[i]);
       }
@@ -99,29 +125,36 @@ export default class ArcGISMap extends Component {
     }
     if (this.props.createOrigin) {
       this.pointChoose = 'origin';
+      if (that.OD[0]) {
+        that.routeLayer.remove(that.OD[0]);
+      }
       this.routeSketch.create("point", { mode: "click" });
     }
     if (this.props.createDestination) {
       this.pointChoose = 'destination';
+      if (that.OD[0]) {
+        that.routeLayer.remove(that.OD[0]);
+      }
       this.routeSketch.create("point", { mode: "click" });
     }
     if (this.props.queryRoute) {
       if (this.state.origin.x.toString().length === 0 || this.state.destination.x.toString().length === 0) {
         this.notice('未选择起止点！');
       } else {
-        fetch(`http://tony-space.top:8007/baiduroute?origin=${this.state.origin.y.toString()},${this.state.origin.x.toString()}&destination=${this.state.destination.y.toString()},${this.state.destination.x.toString()}`)
+        fetch(`https://tony-space.top:8008/baiduroute?origin=${this.state.origin.y.toString()},${this.state.origin.x.toString()}&destination=${this.state.destination.y.toString()},${this.state.destination.x.toString()}`)
           .then(function (response) {
             return response.json();
           })
           .then(function (result) {
             if (result.status === 0) {
               let steps = result['result']['routes'][0]['steps'];
+
               let route = [];
-              for (let step=0;step<steps.length;step++) {
+              for (let step = 0; step < steps.length; step++) {
                 let path = steps[step]['path'];
                 let paths = path.split(';');
                 for (let i of paths) {
-                  route.push([parseFloat(i.split(',')[0]),parseFloat(i.split(',')[1])])
+                  route.push([parseFloat(i.split(',')[0]), parseFloat(i.split(',')[1])])
                 }
               }
               var polyline = {
@@ -137,6 +170,7 @@ export default class ArcGISMap extends Component {
                 Name: "baidu route", // The name of the pipeline
               };
               if (that.Graphic) {
+                that.clearRoute();
                 that.routeGraphic = new that.Graphic({
                   geometry: polyline, // Add the geometry created in step 4
                   symbol: lineSymbol, // Add the symbol created in step 5
@@ -144,6 +178,10 @@ export default class ArcGISMap extends Component {
                 });
                 that.view.graphics.add(that.routeGraphic);
               }
+              that.setState({
+                distance: result['result']['routes'][0]['distance'],
+                duration: result['result']['routes'][0]['duration']
+              });
             } else {
               that.notice('路径获取失败');
             }
@@ -186,7 +224,7 @@ export default class ArcGISMap extends Component {
       "esri/widgets/Search",
       "esri/core/watchUtils",
       "esri/widgets/Sketch",
-      "esri/layers/MapImageLayer",
+      "esri/layers/MapImageLayer"
     ], mapURL).then(([
       SketchViewModel,
       Polyline,
@@ -203,10 +241,9 @@ export default class ArcGISMap extends Component {
       watchUtils,
       Sketch,
       MapImageLayer
-      ]) => {
+    ]) => {
       this.Graphic = Graphic;
       const unit = "kilometers";
-
       // Create layers
       const graphicsLayer = new GraphicsLayer();
       const graphicsLayer2 = new GraphicsLayer();
@@ -222,7 +259,7 @@ export default class ArcGISMap extends Component {
           visible: true
         }]
       });
-      const featureLayer = new FeatureLayer({
+      const featureLayer = this.featureLayer = new FeatureLayer({
         // URL to the service
         url: "https://arcserver.tony-space.top:8001/arcgis/rest/services/golfmap/MapServer/0"
       });
@@ -236,7 +273,7 @@ export default class ArcGISMap extends Component {
       // Create view
       this.view = new MapView({
         container: "mapDiv",
-        map: map,
+        map,
         zoom: 6,
         center: [113.083, 27.3069],
         constraints: {
@@ -245,13 +282,41 @@ export default class ArcGISMap extends Component {
         }
       });
 
+
       let view = this.view;
+
+      view.on('click', (event) => {
+        view.hitTest(event).then(function (response) {
+          // If user selects a feature, select it
+          const results = response.results;
+          if (
+            results.length > 0 &&
+            results[0].graphic &&
+            results[0].graphic.layer === featureLayer
+          ) {
+            let objectId = results[0].graphic.attributes[featureLayer.objectIdField];
+
+            that.selectFeature(featureLayer, objectId, function (results) {
+              if (that.featureLayerView) {
+                if (that.highlight) {
+                  that.highlight.remove();
+                }
+                that.highlight = that.featureLayerView.highlight(results.features);
+                that.setState({ detailVisible: true, detailTitle: results.features[0].attributes.name, detailContent: 'content' });
+              }
+            })
+          }
+        });
+      });
 
       // Update UI
       setUpAppUI();
 
       function setUpAppUI() {
         // When layer is loaded, create a watcher to trigger drawing of the buffer polygon
+        view.whenLayerView(featureLayer).then(function (layerView) {
+          that.featureLayerView = layerView;
+        });
         view.when(function () {
           // Display the chart in an Expand widget
           var compass = new Compass({
@@ -270,8 +335,16 @@ export default class ArcGISMap extends Component {
           routeSketch.on("create", (event) => {
             if (event.state === "complete") {
               if (that.pointChoose === 'origin') {
+                that.OD[0] = event.graphic;
                 that.setState({ origin: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
+                that.notice('请选择终点')
+                that.pointChoose = 'destination';
+                if (that.OD[1]) {
+                  that.routeLayer.remove(that.OD[1]);
+                }
+                that.routeSketch.create("point", { mode: "click" });
               } else {
+                that.OD[1] = event.graphic;
                 that.setState({ destination: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
               }
             }
@@ -407,6 +480,8 @@ export default class ArcGISMap extends Component {
             <TabPane tab="路径" key="2">
               <p>起点<br />{'X:' + this.state.origin.x.toString() + ' Y:' + this.state.origin.y.toString()}</p>
               <p>终点<br />{'X:' + this.state.destination.x.toString() + ' Y:' + this.state.destination.y.toString()}</p>
+              <p>耗时<br />{this.state.duration.toString()+'秒'}</p>
+              <p>距离<br />{this.state.distance.toString()+'米'}</p>
               <Button type="primary" onClick={this.clearRoute.bind(this)}>清除路径</Button>
             </TabPane>
           </Tabs>

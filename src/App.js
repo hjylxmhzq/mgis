@@ -80,6 +80,7 @@ class App extends React.Component {
         state.reset = true;
         break;
       case 'createpolygon':
+        state.tabsIndex = '1';
         state.createPolygon = true;
         break;
       case 'odpoint':

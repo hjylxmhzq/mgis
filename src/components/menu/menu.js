@@ -35,15 +35,27 @@ export default class LeftMenu extends Component {
                             lineHeight: '26px'
                         }}
                             onClick={this.props.handleMenuClick}
+                            key="createpolygon" >多边形
+                        </Menu.Item>
+                        <Menu.Item style={{
+                            marginBottom: '0px',
+                            height: '26px',
+                            fontSize: '12px',
+                            lineHeight: '26px'
+                        }}
+                            onClick={this.props.handleMenuClick}
                             key="reset" >重置范围
                         </Menu.Item>
                     </SubMenu>
                     <SubMenu key="g2" title="路径计算">
-                        <Menu.Item>
-                            起点
+                        <Menu.Item key="createorigin" onClick={this.props.handleMenuClick}>
+                            起点设置
                         </Menu.Item>
-                        <Menu.Item>
-                            终点
+                        <Menu.Item key="createdestination" onClick={this.props.handleMenuClick}>
+                            终点设置
+                        </Menu.Item>
+                        <Menu.Item key="queryroute" onClick={this.props.handleMenuClick}>
+                            查询
                         </Menu.Item>
                     </SubMenu>
                 </SubMenu>

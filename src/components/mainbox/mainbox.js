@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import Charts from '../charts';
 import Details from '../details';
 import esriLoader from 'esri-loader';
-import { Drawer } from 'antd';
+import { Drawer, Tabs, notification, Button } from 'antd';
 import './mainbox.css';
+const { TabPane } = Tabs;
 
 export default class ArcGISMap extends Component {
   constructor(props) {
@@ -18,25 +19,59 @@ export default class ArcGISMap extends Component {
     this.updateChart = this.updateChart.bind(this);
     this.selectGrphics = [];
     this.sketch = null;
-    this.state = { 
+    this.pointChoose = 'origin';
+    this.OD = [];
+    this.Graphic = null;
+    this.state = {
       drawerVisible: props.drawerVisible,
       drawerContent: [],
       barData: [],
-      detailVisible: false
+      detailVisible: false,
+      destination: { x: '', y: '' },
+      origin: { x: '', y: '' }
     };
+    this.routeGraphic = null;
+  }
+
+  clearRoute() {
+    if (this.routeGraphic) {
+      this.view.graphics.remove(this.routeGraphic);
+      this.routeGraphic = null;
+    };
+    
+  }
+
+  notice(msg) {
+    notification.open({
+      message: '消息',
+      description:
+        msg,
+      onClick: () => {
+        console.log('Notification Clicked!');
+      },
+    });
   }
 
   updateChart(barData) {
-    this.setState({barData});
+    this.setState({ barData });
   }
 
   handleCloseModal() {
-    this.setState({detailVisible: false});
+    this.setState({ detailVisible: false });
+  }
+
+  onCloseDrawer() {
+    this.props.onCloseDrawer();
+    this.setState({ barData: [] });
   }
 
   clickSelected(event) {
     let content = <p>content</p>
-    this.setState({detailVisible: true, detailContent: content, detailTitle: event.target.innerText})
+    this.setState({ detailVisible: true, detailContent: content, detailTitle: event.target.innerText })
+  }
+
+  handleTabChange(tabsIndex) {
+    this.setState({ tabsIndex });
   }
 
   showDrawer = () => {
@@ -46,23 +81,81 @@ export default class ArcGISMap extends Component {
   };
 
   componentDidUpdate() {
+    let that = this;
     if (this.props.hotmap) {
-      this.map.add(this.hotLayer);
+      this.hotLayer.visible = true;
     } else {
-      this.map.remove(this.hotLayer);
+      this.hotLayer.visible = false;
     }
     if (this.props.reset) {
       this.sketch.reset();
-      for (let i=0;i<this.selectGrphics.length;i++) {
+      for (let i = 0; i < this.selectGrphics.length; i++) {
         this.graphicsLayer2.remove(this.selectGrphics[i]);
       }
       this.selectGrphics = [];
+    }
+    if (this.props.createPolygon) {
+      this.sketch.create("polygon", { mode: "click" });
+    }
+    if (this.props.createOrigin) {
+      this.pointChoose = 'origin';
+      this.routeSketch.create("point", { mode: "click" });
+    }
+    if (this.props.createDestination) {
+      this.pointChoose = 'destination';
+      this.routeSketch.create("point", { mode: "click" });
+    }
+    if (this.props.queryRoute) {
+      if (this.state.origin.x.toString().length === 0 || this.state.destination.x.toString().length === 0) {
+        this.notice('未选择起止点！');
+      } else {
+        fetch(`http://tony-space.top:8007/baiduroute?origin=${this.state.origin.y.toString()},${this.state.origin.x.toString()}&destination=${this.state.destination.y.toString()},${this.state.destination.x.toString()}`)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (result) {
+            if (result.status === 0) {
+              let steps = result['result']['routes'][0]['steps'];
+              let route = [];
+              for (let step=0;step<steps.length;step++) {
+                let path = steps[step]['path'];
+                let paths = path.split(';');
+                for (let i of paths) {
+                  route.push([parseFloat(i.split(',')[0]),parseFloat(i.split(',')[1])])
+                }
+              }
+              var polyline = {
+                type: "polyline", // autocasts as new Polyline()
+                paths: route
+              };
+              var lineSymbol = {
+                type: "simple-line", // autocasts as new SimpleLineSymbol()
+                color: [226, 119, 40], // RGB color values as an array
+                width: 4
+              };
+              var lineAtt = {
+                Name: "baidu route", // The name of the pipeline
+              };
+              if (that.Graphic) {
+                that.routeGraphic = new that.Graphic({
+                  geometry: polyline, // Add the geometry created in step 4
+                  symbol: lineSymbol, // Add the symbol created in step 5
+                  attributes: lineAtt // Add the attributes created in step 6
+                });
+                that.view.graphics.add(that.routeGraphic);
+              }
+            } else {
+              that.notice('路径获取失败');
+            }
+          });
+      }
     }
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      drawerVisible: nextProps.drawerVisible
+      drawerVisible: nextProps.drawerVisible,
+      tabsIndex: nextProps.tabsIndex
     });
     this.map.basemap = nextProps.basemap;
   }
@@ -76,7 +169,7 @@ export default class ArcGISMap extends Component {
     let that = this;
 
     const mapURL = {
-      url: "http://www.tony-space.top:8000/arcgis_js_api/library/4.11/dojo/dojo.js"
+      url: "https://www.tony-space.top:8001/arcgis_js_api/library/4.11/dojo/dojo.js"
     }
     esriLoader.loadModules([
       "esri/widgets/Sketch/SketchViewModel",
@@ -93,7 +186,7 @@ export default class ArcGISMap extends Component {
       "esri/widgets/Search",
       "esri/core/watchUtils",
       "esri/widgets/Sketch",
-      "esri/layers/MapImageLayer"
+      "esri/layers/MapImageLayer",
     ], mapURL).then(([
       SketchViewModel,
       Polyline,
@@ -109,17 +202,25 @@ export default class ArcGISMap extends Component {
       Search,
       watchUtils,
       Sketch,
-      MapImageLayer]) => {
-      let featureLayerView, pausableWatchHandle, chartExpand;
-
+      MapImageLayer
+      ]) => {
+      this.Graphic = Graphic;
       const unit = "kilometers";
 
       // Create layers
       const graphicsLayer = new GraphicsLayer();
       const graphicsLayer2 = new GraphicsLayer();
+      const routeLayer = new GraphicsLayer();
+      this.routeLayer = routeLayer;
       this.graphicsLayer2 = graphicsLayer2;
       this.hotLayer = new MapImageLayer({
-        url: "https://arcserver.tony-space.top:8001/arcgis/rest/services/golfmap/MapServer"
+        url: "https://arcserver.tony-space.top:8001/arcgis/rest/services/golfmap/MapServer",
+        visible: false,
+        opacity: 0.5,
+        sublayers: [{
+          id: 2,
+          visible: true
+        }]
       });
       const featureLayer = new FeatureLayer({
         // URL to the service
@@ -129,7 +230,7 @@ export default class ArcGISMap extends Component {
       let basemap = this.props.basemap;
       this.map = new Map({
         basemap,
-        layers: [featureLayer, graphicsLayer2, graphicsLayer]
+        layers: [featureLayer, this.hotLayer, graphicsLayer2, graphicsLayer, routeLayer]
       });
       let map = this.map;
       // Create view
@@ -154,14 +255,27 @@ export default class ArcGISMap extends Component {
         view.when(function () {
           // Display the chart in an Expand widget
           var compass = new Compass({
-            view: view
+            view
           });
           const sketch = new Sketch({
             view,
             layer: graphicsLayer2
           });
+          const routeSketch = new Sketch({
+            view,
+            layer: routeLayer
+          });
+          that.routeSketch = routeSketch;
           that.sketch = sketch;
-
+          routeSketch.on("create", (event) => {
+            if (event.state === "complete") {
+              if (that.pointChoose === 'origin') {
+                that.setState({ origin: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
+              } else {
+                that.setState({ destination: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
+              }
+            }
+          })
           sketch.on("create", (event) => {
             // check if the create event's state has changed to complete indicating
             // the graphic create operation is completed.
@@ -173,33 +287,33 @@ export default class ArcGISMap extends Component {
               featureLayer.queryFeatures(query).then(function (results) {
                 // prints an array of all the features in the service to the console
                 let features = results.features,
-                    barData = [];
+                  barData = [];
                 features.forEach((feature) => {
                   barData.push([feature.attributes.name, feature.attributes['avg_score']]);
                 });
-                barData.sort((a,b)=>{
+                barData.sort((a, b) => {
                   return b[1] - a[1];
                 })
-                that.setState({drawerVisible: true})
+                that.setState({ drawerVisible: true })
                 that.updateChart(barData);
               });
             }
           });
-          sketch.on("update", function(event){
+          sketch.on("update", function (event) {
             // check if the graphics are done being moved, printout dx, dy parameters to the console.
             const eventInfo = event.toolEventInfo;
-            if (eventInfo && eventInfo.type.includes("move")){
+            if (eventInfo && eventInfo.type.includes("move")) {
               let query = featureLayer.createQuery();
               query.geometry = eventInfo.mover.geometry;
               query.spatialRelationship = "intersects";
               featureLayer.queryFeatures(query).then(function (results) {
                 // prints an array of all the features in the service to the console
                 let features = results.features,
-                    barData = [];
+                  barData = [];
                 features.forEach((feature) => {
                   barData.push([feature.attributes.name, feature.attributes['avg_score']]);
                 });
-                barData.sort((a,b)=>{
+                barData.sort((a, b) => {
                   return b[1] - a[1];
                 })
                 that.updateChart(barData);
@@ -271,22 +385,34 @@ export default class ArcGISMap extends Component {
       <div style={style}>
         <canvas ref={this.chartCanvas} style={{ position: 'absolute', bottom: '10px', right: '10px' }}></canvas>
         <div id="mapDiv" style={style}></div>
+
         <Drawer
-          title="查询结果"
+          title="工具"
           placement="right"
           closable={true}
-          onClose={this.props.onCloseDrawer}
+          onClose={this.onCloseDrawer.bind(this)}
           visible={this.state.drawerVisible}
           mask={false}
           width={300}
         >
-          <Charts barData={this.state.barData} />
-          {
-            this.state.barData.map((item) => {
-              return <p className="selected_item" key={item[0]} onClick={this.clickSelected.bind(this)}>{item[0]}</p>;
-            })
-          }
+          <Tabs defaultActiveKey={this.state.tabsIndex} activeKey={this.state.tabsIndex} onChange={this.handleTabChange.bind(this)}>
+            <TabPane tab="查询结果" key="1">
+              <Charts barData={this.state.barData} />
+              {
+                this.state.barData.map((item) => {
+                  return <p className="selected_item" key={Math.random().toString()} onClick={this.clickSelected.bind(this)}>{item[0]}</p>;
+                })
+              }
+            </TabPane>
+            <TabPane tab="路径" key="2">
+              <p>起点<br />{'X:' + this.state.origin.x.toString() + ' Y:' + this.state.origin.y.toString()}</p>
+              <p>终点<br />{'X:' + this.state.destination.x.toString() + ' Y:' + this.state.destination.y.toString()}</p>
+              <Button type="primary" onClick={this.clearRoute.bind(this)}>清除路径</Button>
+            </TabPane>
+          </Tabs>
+
         </Drawer>
+
         <Details closeModal={this.handleCloseModal.bind(this)} title={this.state.detailTitle} visible={this.state.detailVisible} content={this.state.detailContent} />
       </div>
     )

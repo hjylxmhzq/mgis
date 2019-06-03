@@ -14,7 +14,11 @@ class App extends React.Component {
       hotmap: false,
       drawerVisible: false,
       basemap: 'dark-gray',
-      reset: false
+      reset: false,
+      createPolygon: false,
+      createOrigin: false,
+      createDestination: false,
+      queryRoute: false
     };
   }
 
@@ -31,7 +35,19 @@ class App extends React.Component {
 
   componentDidUpdate() {
     if (this.state.reset) {
-      this.setState({reset: false});
+      this.setState({ reset: false });
+    }
+    if (this.state.createPolygon) {
+      this.setState({ createPolygon: false });
+    }
+    if (this.state.createOrigin) {
+      this.setState({ createOrigin: false });
+    }
+    if (this.state.createDestination) {
+      this.setState({ createDestination: false });
+    }
+    if (this.state.queryRoute) {
+      this.setState({ queryRoute: false });
     }
   }
 
@@ -46,6 +62,7 @@ class App extends React.Component {
         break;
       case 'static':
         state.drawerVisible = !this.state.drawerVisible;
+        state.tabsIndex = '1';
         break;
       case 'topo':
         state.basemap = 'topo';
@@ -61,6 +78,29 @@ class App extends React.Component {
         break;
       case 'reset':
         state.reset = true;
+        break;
+      case 'createpolygon':
+        state.createPolygon = true;
+        break;
+      case 'odpoint':
+        state.drawerVisible = !this.state.drawerVisible;
+        state.tabsIndex = '2';
+        state.createPoint = true;
+        break;
+      case 'createorigin':
+        state.drawerVisible = true;
+        state.tabsIndex = '2';
+        state.createOrigin = true;
+        break;
+      case 'createdestination':
+        state.drawerVisible = true;
+        state.tabsIndex = '2';
+        state.createDestination = true;
+        break;
+      case 'queryroute':
+        state.drawerVisible = true;
+        state.tabsIndex = '2';
+        state.queryRoute = true;
         break;
     }
     this.setState(state);
@@ -99,7 +139,12 @@ class App extends React.Component {
                 }}
               >
                 <Mainbox
+                  tabsIndex={this.state.tabsIndex}
                   reset={this.state.reset}
+                  createPolygon={this.state.createPolygon}
+                  createOrigin={this.state.createOrigin}
+                  createDestination={this.state.createDestination}
+                  queryRoute={this.state.queryRoute}
                   basemap={this.state.basemap}
                   hotmap={this.state.hotmap}
                   drawerVisible={this.state.drawerVisible}

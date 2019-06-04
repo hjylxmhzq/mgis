@@ -5,6 +5,7 @@ import Charts from '../charts';
 import Details from '../details';
 import esriLoader from 'esri-loader';
 import { Drawer, Tabs, notification, Button } from 'antd';
+import transFrom from '../../modules/transFrom';
 import './mainbox.css';
 const { TabPane } = Tabs;
 
@@ -120,20 +121,20 @@ export default class ArcGISMap extends Component {
       }
       this.selectGrphics = [];
     }
-    if (this.props.createPolygon) {
+    if (this.props.createPolygon && this.sketch) {
       this.sketch.create("polygon", { mode: "click" });
     }
-    if (this.props.createOrigin) {
+    if (this.props.createOrigin && this.routeLayer && this.routeSketch) {
       this.pointChoose = 'origin';
       if (that.OD[0]) {
         that.routeLayer.remove(that.OD[0]);
       }
       this.routeSketch.create("point", { mode: "click" });
     }
-    if (this.props.createDestination) {
+    if (this.props.createDestination && this.routeLayer && this.routeSketch) {
       this.pointChoose = 'destination';
-      if (that.OD[0]) {
-        that.routeLayer.remove(that.OD[0]);
+      if (this.OD[0]) {
+        this.routeLayer.remove(this.OD[0]);
       }
       this.routeSketch.create("point", { mode: "click" });
     }
@@ -154,7 +155,7 @@ export default class ArcGISMap extends Component {
                 let path = steps[step]['path'];
                 let paths = path.split(';');
                 for (let i of paths) {
-                  route.push([parseFloat(i.split(',')[0]), parseFloat(i.split(',')[1])])
+                  route.push(transFrom.gcj02towgs84(parseFloat(i.split(',')[0]), parseFloat(i.split(',')[1])));
                 }
               }
               var polyline = {
@@ -207,7 +208,7 @@ export default class ArcGISMap extends Component {
     let that = this;
 
     const mapURL = {
-      url: "https://www.tony-space.top:8001/arcgis_js_api/library/4.11/dojo/dojo.js"
+      url: "https://tony-space.top:8008/arcgis_js_api/library/4.11/dojo/dojo.js"
     }
     esriLoader.loadModules([
       "esri/widgets/Sketch/SketchViewModel",

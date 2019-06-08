@@ -1,0 +1,90 @@
+.ant-carousel .slick-slide {
+    text-align: center;
+    height: 560px;
+    line-height: 160px;
+    background: #364d79;
+    overflow: hidden;
+    position: relative;
+}
+
+.ant-carousel .slick-slide h3 {
+    color: #fff;
+}
+
+.home_search {
+    margin: 50px 100px;
+}
+
+.home_search .ant-input-lg {
+    height: 70px;
+}
+
+.home_search .ant-input-lg {
+    display: inline-block;
+    width: 83%;
+}
+
+.search_text {
+    text-align: left;
+    margin:0 0 25px; 
+}
+
+.home_search .ant-select {
+    height: 70px;
+    vertical-align: top;
+    font-size: 20px;
+}
+
+.home_search .ant-select-selection {
+    height: 70px;
+}
+
+.home_search .ant-select-selection__rendered {
+    line-height: 70px;
+}
+
+.search_text > span {
+    text-align: left;
+    margin: 35px;
+}
+
+.search_text > span:nth-child(1) {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.slider_img {
+    height: 100%;
+    width: 100%;
+}
+
+.slider_text {
+    position: absolute;
+    top: 0;
+    line-height: 560px;
+    left: 0;
+    width: 500px;
+    font-size: 30px;
+    font-weight: bolder;
+    color: white;
+    background: -webkit-linear-gradient( left,#00000070,transparent) !important;
+    text-shadow: 1px 2px 4px #1b1b1b;
+}
+
+.card_box {
+    padding: 0 100px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    margin: 5px;
+}
+
+.popular_text {
+    font-size: 23px;
+    font-weight: bold;
+    text-align: left;
+    padding: 0 0 30px 150px;
+}

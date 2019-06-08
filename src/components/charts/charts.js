@@ -20,12 +20,6 @@ export default class Charts extends Component {
             title: {
                 text: '评分'
             },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'shadow'
-                }
-            },
             color: ['#3398DB'],
             tooltip : {
                 trigger: 'axis',
@@ -67,8 +61,8 @@ export default class Charts extends Component {
 
     componentDidUpdate() {
         let { barData } = this.props;
-        this.barOption.xAxis[0].data = barData.map((item)=>item[0]);
-        this.barOption.series[0].data = barData.map((item)=>item[1]);
+        this.barOption.xAxis[0].data = barData.map((item)=>item['name']);
+        this.barOption.series[0].data = barData.map((item)=>item['avg_score']);
         this.barChartsInstance.setOption(this.barOption);
     }
 

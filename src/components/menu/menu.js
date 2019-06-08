@@ -68,7 +68,10 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <Menu.Item key="hotmap" onClick={this.props.handleMenuClick}>密度图</Menu.Item>
+
+                    <SubMenu key="hot" title="密度图">
+                        <Menu.Item key="hotmap" onClick={this.props.handleMenuClick}>评分热度</Menu.Item>
+                    </SubMenu>
                     <Menu.Item key="static" onClick={this.props.handleMenuClick}>统计表格</Menu.Item>
                     {/* <SubMenu key="sub3" title="Submenu">
                         <Menu.Item key="7">Option 7</Menu.Item>
@@ -98,10 +101,7 @@ export default class LeftMenu extends Component {
                         </span>
                     }
                 >
-                    <Menu.Item key="13">Option 9</Menu.Item>
-                    <Menu.Item key="14">Option 10</Menu.Item>
-                    <Menu.Item key="15">Option 11</Menu.Item>
-                    <Menu.Item key="16">Option 12</Menu.Item>
+                    <Menu.Item key="13">使用帮助</Menu.Item>
                 </SubMenu>
             </Menu>
         )

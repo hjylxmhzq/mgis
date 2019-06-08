@@ -1,8 +1,11 @@
 @import '~antd/dist/antd.css';
-
 .App {
   text-align: center;
   height: 100%;
+}
+
+.App > .ant-layout {
+  background-color: white;
 }
 
 .App-logo {
@@ -39,26 +42,26 @@
   color: white;
   text-align: left;
   font-size: 20px;
+  display: inline-block;
 }
 
-.sider::-webkit-scrollbar
-{
-    width: 5px;
-    background-color: #F5F5F5;
+.sider::-webkit-scrollbar {
+  width: 5px;
+  background-color: #F5F5F5;
 }
- 
+
 /*定义滚动条轨道 内阴影+圆角*/
-.sider::-webkit-scrollbar-track
-{
-    border-radius: 10px;
-    background-color: #F5F5F5;
+
+.sider::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color: #F5F5F5;
 }
- 
+
 /*定义滑块 内阴影+圆角*/
-.sider::-webkit-scrollbar-thumb
-{
-    border-radius: 10px;
-    background-color: #999;
+
+.sider::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: #999;
 }
 
 .main_box {
@@ -82,4 +85,13 @@
   box-sizing: border-box;
   height: 100%;
   width: 100%;
+}
+
+#header {
+  background-color: rgba(7, 6, 19, 0.78);
+}
+
+
+#header > * {
+  background-color: transparent;
 }

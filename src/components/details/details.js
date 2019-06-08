@@ -16,7 +16,7 @@ export default class Details extends React.Component {
         this.setState({
             visible: false,
         });
-        this.props.closeModal();
+        this.props.closeModalAndGo();
     };
 
     handleCancel = e => {

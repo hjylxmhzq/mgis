@@ -9,7 +9,7 @@ import transFrom from '../../modules/transFrom';
 import './mainbox.css';
 const { TabPane } = Tabs;
 
-export default class ArcGISMap extends Component {
+export default class MainBox extends Component {
   constructor(props) {
     super(props)
     //地图请求url
@@ -48,7 +48,7 @@ export default class ArcGISMap extends Component {
     };
     if (this.OD[0]) {
       this.routeLayer.remove(this.OD[0]);
-    } 
+    }
     if (this.OD[1]) {
       this.routeLayer.remove(this.OD[1]);
     }
@@ -87,13 +87,39 @@ export default class ArcGISMap extends Component {
     this.setState({ detailVisible: false });
   }
 
+  handleCloseModalAndCreateDest(location) {
+    if (this.routeLayer && this.routeSketch) {
+      this.pointChoose = 'destination';
+      if (this.OD[0]) {
+        this.routeLayer.remove(this.OD[0]);
+      }
+      //this.routeSketch.create("point", { mode: "click" });
+      this.notice('请选择起点');
+    }
+    this.setState({ detailVisible: false });
+  }
+
   onCloseDrawer() {
     this.props.onCloseDrawer();
   }
 
   clickSelected(event) {
-    let content = <p>content</p>
-    this.setState({ detailVisible: true, detailContent: content, detailTitle: event.target.innerText })
+    let name = event.target.innerText;
+    let content = [], clickItem = null;
+    for (let item of this.state.barData) {
+      if (name === item['name']) {
+        clickItem = item;
+        break;
+      }
+    }
+    for (let i in clickItem) {
+      content.push(<p key={i}>{i + ': ' + clickItem[i].toString()}</p>);
+    }
+    let location = {
+      x: clickItem['x'],
+      y: clickItem['y']
+    }
+    this.setState({ detailVisible: true, detailContent: content, detailTitle: event.target.innerText, clickItemLocation: location });
   }
 
   handleTabChange(tabsIndex) {
@@ -109,11 +135,11 @@ export default class ArcGISMap extends Component {
   componentDidUpdate() {
     let that = this;
     if (this.props.hotmap) {
-      this.hotLayer.visible = true;
+      this.hotLayer && (this.hotLayer.visible = true);
     } else {
-      this.hotLayer.visible = false;
+      this.hotLayer && (this.hotLayer.visible = false);
     }
-    if (this.props.reset) {
+    if (this.props.reset && this.sketch) {
       this.sketch.reset();
       this.notice('范围已重置');
       for (let i = 0; i < this.selectGrphics.length; i++) {
@@ -126,8 +152,8 @@ export default class ArcGISMap extends Component {
     }
     if (this.props.createOrigin && this.routeLayer && this.routeSketch) {
       this.pointChoose = 'origin';
-      if (that.OD[0]) {
-        that.routeLayer.remove(that.OD[0]);
+      if (this.OD[0]) {
+        this.routeLayer.remove(that.OD[0]);
       }
       this.routeSketch.create("point", { mode: "click" });
     }
@@ -196,7 +222,7 @@ export default class ArcGISMap extends Component {
       drawerVisible: nextProps.drawerVisible,
       tabsIndex: nextProps.tabsIndex
     });
-    this.map.basemap = nextProps.basemap;
+    this.map && (this.map.basemap = nextProps.basemap);
   }
 
   componentDidMount() {
@@ -303,7 +329,15 @@ export default class ArcGISMap extends Component {
                   that.highlight.remove();
                 }
                 that.highlight = that.featureLayerView.highlight(results.features);
-                that.setState({ detailVisible: true, detailTitle: results.features[0].attributes.name, detailContent: 'content' });
+                let content = [];
+                for (let i in results.features[0].attributes) {
+                  content.push(<p key={i}>{i + ': ' + results.features[0].attributes[i].toString()}</p>);
+                }
+                let location = {
+                  x: results.features[0].attributes['x'],
+                  y: results.features[0].attributes['y']
+                }
+                that.setState({ detailVisible: true, detailTitle: results.features[0].attributes.name, detailContent: content, clickItemLocation: location });
               }
             })
           }
@@ -344,6 +378,19 @@ export default class ArcGISMap extends Component {
                   that.routeLayer.remove(that.OD[1]);
                 }
                 that.routeSketch.create("point", { mode: "click" });
+              }
+              else if (that.pointChoose === 'chooseddest') {
+                that.OD[1] = event.graphic;
+                that.setState({ destination: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
+                that.notice('请选择起点')
+                that.pointChoose = 'originwithoutcreate';
+                if (that.OD[0]) {
+                  that.routeLayer.remove(that.OD[0]);
+                }
+                that.routeSketch.create("point", { mode: "click" });
+              } else if (that.pointChoose === 'originwithoutcreate') {
+                that.setState({ destination: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
+                that.pointChoose = 'origin';
               } else {
                 that.OD[1] = event.graphic;
                 that.setState({ destination: { x: event.graphic.geometry.longitude, y: event.graphic.geometry.latitude } });
@@ -363,12 +410,12 @@ export default class ArcGISMap extends Component {
                 let features = results.features,
                   barData = [];
                 features.forEach((feature) => {
-                  barData.push([feature.attributes.name, feature.attributes['avg_score']]);
+                  barData.push(feature.attributes);
                 });
                 barData.sort((a, b) => {
-                  return b[1] - a[1];
+                  return b['avg_score'] - a['avg_score'];
                 })
-                that.setState({ drawerVisible: true })
+                that.setState({ drawerVisible: true, tabsIndex: '1' })
                 that.updateChart(barData);
               });
             }
@@ -385,10 +432,10 @@ export default class ArcGISMap extends Component {
                 let features = results.features,
                   barData = [];
                 features.forEach((feature) => {
-                  barData.push([feature.attributes.name, feature.attributes['avg_score']]);
+                  barData.push(feature.attributes);
                 });
                 barData.sort((a, b) => {
-                  return b[1] - a[1];
+                  return b['avg_score'] - a['avg_score'];
                 })
                 that.updateChart(barData);
               });
@@ -474,22 +521,29 @@ export default class ArcGISMap extends Component {
               <Charts barData={this.state.barData} />
               {
                 this.state.barData.map((item) => {
-                  return <p className="selected_item" key={Math.random().toString()} onClick={this.clickSelected.bind(this)}>{item[0]}</p>;
+                  return <p className="selected_item" key={Math.random().toString()} onClick={this.clickSelected.bind(this)}>{item['name']}</p>;
                 })
               }
             </TabPane>
             <TabPane tab="路径" key="2">
               <p>起点<br />{'X:' + this.state.origin.x.toString() + ' Y:' + this.state.origin.y.toString()}</p>
               <p>终点<br />{'X:' + this.state.destination.x.toString() + ' Y:' + this.state.destination.y.toString()}</p>
-              <p>耗时<br />{this.state.duration.toString()+'秒'}</p>
-              <p>距离<br />{this.state.distance.toString()+'米'}</p>
+              <p>耗时<br />{this.state.duration.toString() + '秒'}</p>
+              <p>距离<br />{this.state.distance.toString() + '米'}</p>
               <Button type="primary" onClick={this.clearRoute.bind(this)}>清除路径</Button>
             </TabPane>
           </Tabs>
 
         </Drawer>
 
-        <Details closeModal={this.handleCloseModal.bind(this)} title={this.state.detailTitle} visible={this.state.detailVisible} content={this.state.detailContent} />
+        <Details
+          closeModal={this.handleCloseModal.bind(this)}
+          closeModalAndGo={this.handleCloseModalAndCreateDest.bind(this)}
+          title={this.state.detailTitle}
+          visible={this.state.detailVisible}
+          content={this.state.detailContent}
+          location={this.state.clickItemLocation}
+        />
       </div>
     )
   }

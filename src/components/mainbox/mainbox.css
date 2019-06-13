@@ -1,6 +1,20 @@
 .selected_item {
-    width: 100%;
+    width: 94%;
+    height: 100px;
+    margin: 5px auto;
     padding: 3px 20px;
     box-shadow: 0 0 5px 0 #ddd;
     cursor: pointer;
+    background-color: ghostwhite;
+}
+
+.selected_item > div {
+    padding: 5px;
+}
+
+.ant-tabs-content .ant-btn {
+    width: 100px;
+    height: 40px;
+    font-size: 16px;
+    font-weight: normal;
 }

@@ -9,7 +9,7 @@ export default class ToolPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            collapsed: false,
+            collapsed: true,
             hotmap: false,
             drawerVisible: false,
             basemap: 'streets',
@@ -146,6 +146,7 @@ export default class ToolPage extends React.Component {
                             hotmap={this.state.hotmap}
                             drawerVisible={this.state.drawerVisible}
                             onCloseDrawer={this.onCloseDrawer.bind(this)}
+                            search={this.props.match}
                         />
                     </Content>
                 </Layout>

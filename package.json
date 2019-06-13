@@ -131,6 +131,7 @@
   },
   "devDependencies": {
     "antd": "^3.18.2",
+    "coordtransform": "^2.1.2",
     "echarts": "^4.2.1",
     "esri-loader": "^2.9.2",
     "react-router": "^5.0.1"

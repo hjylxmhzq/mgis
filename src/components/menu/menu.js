@@ -15,7 +15,7 @@ export default class LeftMenu extends Component {
             <Menu
                 onClick={this.handleClick}
                 defaultSelectedKeys={['1']}
-                defaultOpenKeys={['sub1', 'sub2']}
+                //defaultOpenKeys={['sub1', 'sub2']}
                 mode="inline"
             >
                 <SubMenu

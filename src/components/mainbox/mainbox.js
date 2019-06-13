@@ -4,8 +4,8 @@ import React, { Component } from 'react';
 import Charts from '../charts';
 import Details from '../details';
 import esriLoader from 'esri-loader';
+import coordtransform from 'coordtransform';
 import { Drawer, Tabs, notification, Button } from 'antd';
-import transFrom from '../../modules/transFrom';
 import './mainbox.css';
 const { TabPane } = Tabs;
 
@@ -13,7 +13,6 @@ export default class MainBox extends Component {
   constructor(props) {
     super(props)
     //地图请求url
-    this.tileMapUrl = "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer";
     this.chartCanvas = React.createRef();
     this.hotLayer = null;
     this.map = null;
@@ -36,7 +35,8 @@ export default class MainBox extends Component {
       destination: { x: '', y: '' },
       origin: { x: '', y: '' },
       distance: '',
-      duration: ''
+      duration: '',
+      clickItemLocation: { x: '', y: '' }
     };
     this.routeGraphic = null;
   }
@@ -103,8 +103,7 @@ export default class MainBox extends Component {
     this.props.onCloseDrawer();
   }
 
-  clickSelected(event) {
-    let name = event.target.innerText;
+  clickSelected(index, name, event) {
     let content = [], clickItem = null;
     for (let item of this.state.barData) {
       if (name === item['name']) {
@@ -116,10 +115,19 @@ export default class MainBox extends Component {
       content.push(<p key={i}>{i + ': ' + clickItem[i].toString()}</p>);
     }
     let location = {
-      x: clickItem['x'],
-      y: clickItem['y']
+      x: clickItem ? clickItem['x'] : '',
+      y: clickItem ? clickItem['y'] : ''
     }
     this.setState({ detailVisible: true, detailContent: content, detailTitle: event.target.innerText, clickItemLocation: location });
+  }
+
+  handleMouseOver(mapPoint, name, e) {
+    console.log(mapPoint)
+    this.view && this.view.popup.open({
+      // Set the popup's title to the coordinates of the location
+      title: name,
+      location: mapPoint, // Set the location of the popup to the clicked location
+    });
   }
 
   handleTabChange(tabsIndex) {
@@ -181,7 +189,7 @@ export default class MainBox extends Component {
                 let path = steps[step]['path'];
                 let paths = path.split(';');
                 for (let i of paths) {
-                  route.push(transFrom.gcj02towgs84(parseFloat(i.split(',')[0]), parseFloat(i.split(',')[1])));
+                  route.push(coordtransform.bd09togcj02(...coordtransform.gcj02towgs84(parseFloat(i.split(',')[0]), parseFloat(i.split(',')[1]))));
                 }
               }
               var polyline = {
@@ -313,6 +321,7 @@ export default class MainBox extends Component {
       let view = this.view;
 
       view.on('click', (event) => {
+
         view.hitTest(event).then(function (response) {
           // If user selects a feature, select it
           const results = response.results;
@@ -407,9 +416,11 @@ export default class MainBox extends Component {
               query.spatialRelationship = "intersects";
               featureLayer.queryFeatures(query).then(function (results) {
                 // prints an array of all the features in the service to the console
+                console.log(results)
                 let features = results.features,
                   barData = [];
                 features.forEach((feature) => {
+                  feature.attributes.mapPoint = feature.geometry;
                   barData.push(feature.attributes);
                 });
                 barData.sort((a, b) => {
@@ -502,6 +513,7 @@ export default class MainBox extends Component {
       height: '100%',
       position: 'relative'
     }
+    console.log(this.props)
     return (
       <div style={style}>
         <canvas ref={this.chartCanvas} style={{ position: 'absolute', bottom: '10px', right: '10px' }}></canvas>
@@ -514,14 +526,22 @@ export default class MainBox extends Component {
           onClose={this.onCloseDrawer.bind(this)}
           visible={this.state.drawerVisible}
           mask={false}
-          width={300}
+          width={400}
         >
           <Tabs defaultActiveKey={this.state.tabsIndex} activeKey={this.state.tabsIndex} onChange={this.handleTabChange.bind(this)}>
             <TabPane tab="查询结果" key="1">
               <Charts barData={this.state.barData} />
               {
-                this.state.barData.map((item) => {
-                  return <p className="selected_item" key={Math.random().toString()} onClick={this.clickSelected.bind(this)}>{item['name']}</p>;
+                this.state.barData.map((item, index) => {
+                  return <div
+                    className="selected_item"
+                    key={Math.random().toString()}
+                    onClick={this.clickSelected.bind(this, index, item['name'])}
+                    onMouseOver={this.handleMouseOver.bind(this, item.mapPoint, item['name'])}
+                    >
+                    <div>{(index+1).toString()+'. '+item['name']}</div>
+                    <div>评分{item['avg_score']}</div>
+                  </div>;
                 })
               }
             </TabPane>

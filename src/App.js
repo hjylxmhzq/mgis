@@ -42,13 +42,13 @@ class App extends React.Component {
                 style={{ lineHeight: '64px', display: 'inline-block', verticalAlign: 'top', marginLeft: '50px' }}
               >
                 <Menu.Item key="index"><Link to='/'>主页</Link></Menu.Item>
-                <Menu.Item key="toolpage"><Link to='/tool'>地图工具</Link></Menu.Item>
+                <Menu.Item key="toolpage"><Link to='/tool/nosearch'>地图工具</Link></Menu.Item>
                 <Menu.Item key="about"><Link to='/about'>关于我们</Link></Menu.Item>
               </Menu>
             </Header>
             <Route exact path='/' component={HomePage}></Route>
 
-            <Route path='/tool' component={ToolPage}></Route>
+            <Route path='/tool/:search' component={ToolPage}></Route>
             <Route path='/about' component={About}></Route>
           </Layout>
         </Router>

@@ -1,0 +1,31 @@
+.weather {
+    width: 100%;
+    box-shadow: 0 0 10px 0 #ccc;
+    margin: 0 auto;
+    height: 200px;
+}
+
+.weather > div:not(:first-child) {
+    display: table-cell;
+    width: 200px;
+    box-shadow: 0 0 10px 0 #ddd;
+    height: 133px;
+    background-color: white;
+    text-align: center;
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+.weather > div:first-child {
+    font-size: 18px;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.weather > div > img {
+    vertical-align: middle;
+    border-style: none;
+    height: 73px;
+    display: block;
+    margin: 0 auto;
+}

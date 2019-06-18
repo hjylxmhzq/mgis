@@ -134,7 +134,9 @@
     "coordtransform": "^2.1.2",
     "echarts": "^4.2.1",
     "esri-loader": "^2.9.2",
-    "react-router": "^5.0.1"
+    "react-redux": "^7.1.0",
+    "react-router": "^5.0.1",
+    "redux": "^4.0.1"
   },
   "homepage": "."
 }

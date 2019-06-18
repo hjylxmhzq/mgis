@@ -5,14 +5,31 @@ import HomePage from './homepage';
 import About from './about';
 import { Layout, notification, Menu } from 'antd';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-
+import { Provider, connect } from 'react-redux';
+import { createStore } from 'redux';
+import { actions, reducer, types } from './redux/app';
 const { Header } = Layout;
 
-class App extends React.Component {
+const store = createStore(reducer);
+
+function mapStatetoProps(state) {
+  return {
+    selectedMenu: state.selectedMenu
+  }
+}
+
+function mapDispatchtoProps(dispatch) {
+  return {
+    handleMenuChange(menuName) {
+      dispatch(actions.changeMenu(menuName));
+    }
+  }
+}
+
+class InnerApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      
     };
   }
 
@@ -27,7 +44,12 @@ class App extends React.Component {
     });
   }
 
+  changeMenu(menu) {
+    this.props.handleMenuChange(menu.key);
+  }
+
   render() {
+    console.log(this.props)
     return (
       <div className="App">
         <Router>
@@ -38,7 +60,9 @@ class App extends React.Component {
               <Menu
                 theme="dark"
                 mode="horizontal"
-                defaultSelectedKeys={['index']}
+                defaultSelectedKeys={[this.props.selectedMenu]}
+                selectedKeys={[this.props.selectedMenu]}
+                onClick={this.changeMenu.bind(this)}
                 style={{ lineHeight: '64px', display: 'inline-block', verticalAlign: 'top', marginLeft: '50px' }}
               >
                 <Menu.Item key="index"><Link to='/'>主页</Link></Menu.Item>
@@ -47,7 +71,6 @@ class App extends React.Component {
               </Menu>
             </Header>
             <Route exact path='/' component={HomePage}></Route>
-
             <Route path='/tool/:search' component={ToolPage}></Route>
             <Route path='/about' component={About}></Route>
           </Layout>
@@ -56,6 +79,16 @@ class App extends React.Component {
       </div>
     );
   }
+}
+
+const MappedApp = connect(mapStatetoProps, mapDispatchtoProps)(InnerApp);
+
+function App() {
+  return (
+    <Provider store={store}>
+      <MappedApp />
+    </Provider>
+  )
 }
 
 export default App;

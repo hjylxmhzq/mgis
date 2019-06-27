@@ -1,5 +1,6 @@
 html, body, #root {
   height: 100%;
+  font-family: tahoma,arial,"Hiragino Sans GB", sans-serif, 宋体;
 }
 
 body {

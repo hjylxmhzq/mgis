@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Modal, Button } from 'antd';
+import { Radar } from '../charts';
 import './details.css';
 
 export default class Details extends Component {
@@ -50,7 +51,8 @@ export default class Details extends Component {
         this.setState({
             visible: false,
         });
-        this.props.closeModalAndGo();
+        console.log(this.props.location)
+        this.props.closeModalAndGo(this.props.location);
     };
 
     handleCancel = e => {
@@ -62,10 +64,19 @@ export default class Details extends Component {
     };
 
     render() {
+        let { content } = this.props;
+        let data = content ? [{
+            '名称': content['名称'],
+            '价格分': content['价格分'],
+            '场地': content['场地'],
+            '教练': content['教练'],
+            '服务': content['服务'],
+            '热度分': content['热度分']
+        }] : []
         return (
             <div>
                 <Modal
-                    title={this.props.title}
+                    title={content ? <div style={{fontSize: '17px'}}>{this.props.title}<div style={{ fontSize: '13px', textIndent: '1em' }}>{content['地址']}</div></div> : this.props.title}
                     visible={this.state.visible}
                     onOk={this.handleOk}
                     centered
@@ -78,7 +89,7 @@ export default class Details extends Component {
                             去这里
                         </Button>,
                     ]}
-                    width="90%"
+                    width="70%"
                 >
                     <div className="weather">
                         <div>当地天气状况</div>
@@ -111,7 +122,16 @@ export default class Details extends Component {
                             <div>{this.state.nowWeather['wind_spd']}</div>
                         </div>
                     </div>
-                    {this.props.content}
+                    {
+                        content ?
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-around', margin: '10px', boxShadow: '0 0 10px #ddd' }}>
+                                    <img className="wordcloud" alt="无评论数据" src={"https://www.tony-space.top:8001/wordcloud/" + content['id'].toString() + '.png'}
+                                    />
+                                    <div style={{ width: '500px', height: '350px', boxShadow: '0 0 10px #ddd', margin: '20px' }}><Radar barData={data} /></div>
+                                </div>
+                            </div> : null
+                    }
                 </Modal>
             </div>
         );

@@ -1,0 +1,23 @@
+.loading {
+    position: fixed;
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    top: 66px;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: #dddddd6c;
+}
+
+.loading_icon {
+    width: 100%;
+    height: 100px;
+}
+
+.loading_text {
+    height: 50px;
+    font-size: 18px;
+}

@@ -8,13 +8,11 @@ function debounce(fn, wait, immediate) {
         }
         let that = this;
         let arg = Array.prototype.slice.apply(arguments);
-        if (timer) {
-            clearTimeout(timer);
-            setTimeout(() => {
-                fn.apply(that, arg);
-                callNow = !immediate ? true : false;
-            }, wait);
-        }
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fn.apply(that, arg);
+            callNow = !immediate ? true : false;
+        }, wait);
     }
 }
 

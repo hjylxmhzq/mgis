@@ -1,1 +1,1 @@
-export { default } from './charts.js';
+export { Bar, Radar } from './charts.js';

@@ -4,10 +4,11 @@ import ToolPage from './components/toolpage';
 import HomePage from './homepage';
 import About from './about';
 import { Layout, notification, Menu } from 'antd';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route, Link, Switch, Redirect } from "react-router-dom";
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
 import { actions, reducer, types } from './redux/app';
+import logo from './static/pics/logo.png';
 const { Header } = Layout;
 
 const store = createStore(reducer);
@@ -55,8 +56,9 @@ class InnerApp extends React.Component {
         <Router>
 
           <Layout style={{ height: '100%' }}>
-            <Header id="header" style={{ textAlign: 'left' }}>
-              <div className="header_text">高尔夫信息综合</div>
+            <Header id="header" style={{ textAlign: 'left', paddingLeft: 20 }}>
+              <img className="logo" src={logo} title="GOLFIT！高尔夫球场智能推荐系统" ></img>
+              <div className="header_text">GOLFIT！高尔夫球场智能推荐系统</div>
               <Menu
                 theme="dark"
                 mode="horizontal"
@@ -70,9 +72,13 @@ class InnerApp extends React.Component {
                 <Menu.Item key="about"><Link to='/about'>关于我们</Link></Menu.Item>
               </Menu>
             </Header>
-            <Route exact path='/' component={HomePage}></Route>
-            <Route path='/tool/:search' component={ToolPage}></Route>
-            <Route path='/about' component={About}></Route>
+            <Switch>
+              <Route exact path='/' component={HomePage}></Route>
+              <Route path='/tool/:search' component={ToolPage}></Route>
+              <Route path='/about' component={About}></Route>
+              <Redirect to="/" />
+            </Switch>
+
           </Layout>
         </Router>
 
